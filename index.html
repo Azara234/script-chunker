@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Script Chunker</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; }
+    textarea { width: 100%; height: 200px; margin-bottom: 10px; font-size: 14px; }
+    button { margin: 5px; padding: 10px; border: none; border-radius: 6px; cursor: pointer; }
+    .chunk { background: #fff; padding: 10px; margin: 10px 0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .dark { background: #222; color: #eee; }
+    .dark textarea { background: #333; color: #fff; }
+  </style>
+</head>
+<body>
+  <h1>📜 Script Chunker</h1>
+  <textarea id="inputText" placeholder="Paste your script here (no limits)..."></textarea>
+  <br>
+  Chunk Size (characters): <input id="chunkSize" type="number" value="2000" style="width:100px;">
+  <button onclick="chunkText()">Chunk</button>
+  <button onclick="downloadAll()">Download All</button>
+  <button onclick="toggleMode()">🌙 Dark/Light</button>
+  <div id="stats"></div>
+  <div id="output"></div>
+
+  <script>
+    function chunkText() {
+      const text = document.getElementById("inputText").value;
+      const size = parseInt(document.getElementById("chunkSize").value);
+      const output = document.getElementById("output");
+      output.innerHTML = "";
+      if (!text || size <= 0) return;
+
+      let chunks = [];
+      for (let i = 0; i < text.length; i += size) {
+        chunks.push(text.substring(i, i + size));
+      }
+
+      document.getElementById("stats").innerText = 
+        `Total Characters: ${text.length} | Total Chunks: ${chunks.length}`;
+
+      chunks.forEach((chunk, idx) => {
+        const div = document.createElement("div");
+        div.className = "chunk";
+        div.innerHTML = `<h3>Chunk ${idx+1}</h3>
+                         <textarea readonly>${chunk}</textarea><br>
+                         <button onclick="copyChunk(${idx})">Copy</button>`;
+        output.appendChild(div);
+      });
+      window.chunks = chunks;
+    }
+
+    function copyChunk(i) {
+      navigator.clipboard.writeText(window.chunks[i]).then(() => {
+        alert("Chunk " + (i+1) + " copied!");
+      });
+    }
+
+    function downloadAll() {
+      if (!window.chunks) return;
+      let allText = window.chunks.map((c,i)=>`--- Chunk ${i+1} ---\n${c}\n`).join("\n");
+      let blob = new Blob([allText], {type:"text/plain"});
+      let link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "script_chunks.txt";
+      link.click();
+    }
+
+    function toggleMode() {
+      document.body.classList.toggle("dark");
+    }
+  </script>
+</body>
+</html>
